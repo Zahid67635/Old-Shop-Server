@@ -45,7 +45,7 @@ async function run() {
             const products = await allProductCollection.find(query).toArray();
             res.send(products);
         });
-        app.get('/products', verifyJWT, async (req, res) => {
+        app.get('/sellerProducts', verifyJWT, async (req, res) => {
             const email = req.query.email;
             const query = { email };
             const decodedEmail = req.decoded.email;
@@ -55,6 +55,17 @@ async function run() {
             const result = await allProductCollection.find(query).toArray();
             res.send(result);
         });
+
+        app.delete('/sellerProducts/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const decodedEmail = req.decoded.email;
+            if (email !== decodedEmail) {
+                return res.status(403).send({ message: 'Access Forbidden' })
+            }
+            const result = await allProductCollection.deleteOne(query);
+            res.send(result);
+        })
         app.get('/categories', async (req, res) => {
             const query = {};
             const categories = await allCategories.find(query).toArray();
