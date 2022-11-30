@@ -45,6 +45,16 @@ async function run() {
             const products = await allProductCollection.find(query).toArray();
             res.send(products);
         });
+        app.get('/products', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            const query = { email };
+            const decodedEmail = req.decoded.email;
+            if (email !== decodedEmail) {
+                return res.status(403).send({ message: 'Access Forbidden' })
+            }
+            const result = await allProductCollection.find(query).toArray();
+            res.send(result);
+        });
         app.get('/categories', async (req, res) => {
             const query = {};
             const categories = await allCategories.find(query).toArray();
@@ -57,9 +67,18 @@ async function run() {
             const categoryProducts = await allProductCollection.find(query).toArray();
             res.send(categoryProducts)
         })
-        app.get('/bookings', async (req, res) => {
+        app.post('/products', async (req, res) => {
+            const addedProduct = req.body;
+            const result = await allProductCollection.insertOne(addedProduct);
+            res.send(result);
+        })
+        app.get('/bookings', verifyJWT, async (req, res) => {
             const email = req.query.email;
             const query = { email };
+            const decodedEmail = req.decoded.email;
+            if (email !== decodedEmail) {
+                return res.status(403).send({ message: 'Access Forbidden' })
+            }
             const bookings = await bookingsCollection.find(query).toArray();
             res.send(bookings);
         })
