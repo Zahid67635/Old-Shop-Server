@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId, ObjectID } = require('mongodb');
 const port = process.env.PORT || 5000;
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -56,9 +56,9 @@ async function run() {
             res.send(result);
         });
 
-        app.delete('/sellerProducts/:email', verifyJWT, async (req, res) => {
-            const email = req.params.email;
-            const query = { email };
+        app.delete('/sellerProducts/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
             const decodedEmail = req.decoded.email;
             if (email !== decodedEmail) {
                 return res.status(403).send({ message: 'Access Forbidden' })
@@ -83,7 +83,12 @@ async function run() {
             const result = await allProductCollection.insertOne(addedProduct);
             res.send(result);
         })
-        app.get('/bookings', verifyJWT, async (req, res) => {
+        app.get('/bookings', async (req, res) => {
+            const query = {};
+            const result = await bookingsCollection.find(query).toArray();
+            res.send(result);
+        })
+        app.get('/userBookings', verifyJWT, async (req, res) => {
             const email = req.query.email;
             const query = { email };
             const decodedEmail = req.decoded.email;
@@ -91,6 +96,12 @@ async function run() {
                 return res.status(403).send({ message: 'Access Forbidden' })
             }
             const bookings = await bookingsCollection.find(query).toArray();
+            res.send(bookings);
+        })
+        app.delete('/bookings', async (req, res) => {
+            const email = req.query.email;
+            const query = { email };
+            const bookings = await bookingsCollection.deleteOne(query);
             res.send(bookings);
         })
 
@@ -103,6 +114,17 @@ async function run() {
             const email = req.params.email;
             const query = { email };
             const result = await usersCollection.findOne(query);
+            res.send(result);
+        })
+        app.get('/sellers', async (req, res) => {
+            const query = { role: 'seller' };
+            const result = await usersCollection.find(query).toArray();
+            res.send(result);
+        })
+        app.delete('/sellers', async (req, res) => {
+            const email = req.query.email;
+            const query = { email };
+            const result = await usersCollection.deleteOne(query);
             res.send(result);
         })
         app.post('/users', async (req, res) => {
